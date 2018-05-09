@@ -5,7 +5,6 @@
 from django_fsm import can_proceed
 from rest_framework import exceptions
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 
@@ -13,7 +12,7 @@ def get_transition_viewset_method(transition_name, url_name=None, **kwargs):
     '''
     Create a viewset method for the provided `transition_name`. Requires DRF >= 3.8
     '''
-    @action(detail=True, methods=['post'], permission_classes=[IsAuthenticated], url_name=url_name, url_path=transition_name, **kwargs)
+    @action(detail=True, methods=['post'], url_name=url_name, url_path=transition_name, **kwargs)
     def inner_func(self, request, pk=None, **kwargs):
         object = self.get_object()
         transition_method = getattr(object, transition_name)

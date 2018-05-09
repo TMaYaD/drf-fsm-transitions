@@ -35,7 +35,7 @@ if `Article` had 2 transitions, `delete` and `publish`, the following API calls 
 
 ### Custom route arguments
 
-Passing arguments to the `@detail_route` decorator can be done by specifiying
+Passing arguments to the `@action` decorator can be done by specifiying
 them in the `get_viewset_transition_action_mixin` method:
 
 ```python
@@ -46,7 +46,7 @@ class ArticleViewSet(
     queryset = Article.objects.all()
 ```
 
-This will set `permission_classes` on each `@detail_route` for all transitions.
+This will set `permission_classes` on each detail `@action` for all transitions.
 There is currrently no way to specify individual arguments for each transition.
 
 ### Saving
