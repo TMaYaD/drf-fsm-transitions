@@ -3,6 +3,7 @@
    Modified to work with DRF >= 3.8 routing semantics
 '''
 from django_fsm import can_proceed, FSMField
+from django.contrib.auth.models import User
 from rest_framework import exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,7 +20,10 @@ def get_transition_viewset_method(transition_name, url_name=None, methods=['patc
         if can_proceed(transition_method, self.request.user):
 
             # Perform the requested transition
-            transition_method(request=self.request, by=self.request.user)
+            if isinstance(self.request.user, User):
+               transition_method(by=self.request.user)
+            els:
+               transition_method()
 
             if self.save_after_transition:
                 object.save()
