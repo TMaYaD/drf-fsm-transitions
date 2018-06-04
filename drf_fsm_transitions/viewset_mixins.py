@@ -22,7 +22,7 @@ def get_transition_viewset_method(transition_name, url_name=None, methods=['patc
             # Perform the requested transition
             if isinstance(self.request.user, User):
                transition_method(by=self.request.user)
-            els:
+            else:
                transition_method()
 
             if self.save_after_transition:
