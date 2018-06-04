@@ -2,7 +2,7 @@
 
    Modified to work with DRF >= 3.8 routing semantics
 '''
-from django_fsm import can_proceed
+from django_fsm import can_proceed, FSMField
 from rest_framework import exceptions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -32,20 +32,20 @@ def get_transition_viewset_method(transition_name, url_name=None, **kwargs):
     inner_func.__name__ = transition_name # Needed for DRF >= 3.8, see: router.get_routes
     return inner_func
 
+def get_all_transitions(model):
+    fsm_fields = [f for f in model._meta.fields if isinstance(f, FSMField)]
+    return {k:v for f in fsm_fields for k, v in f.transitions[model].items()}
 
 def get_viewset_transition_action_mixin(model, **kwargs):
     '''
     Find all transitions defined on `model`, then create a corresponding
     viewset action method for each and apply it to `Mixin`. Return the Mixin.
     '''
-    instance = model()
-
     class Mixin(object):
         save_after_transition = True
 
-    transitions = instance.get_all_state_transitions()
-    transition_names = set(x.name for x in transitions)
-    for transition_name in transition_names:
+    transitions = get_all_transitions(model)
+    for transition_name in transitions:
         url_name = model._meta.model_name + '-' + transition_name.replace('_', '-')
         setattr(
             Mixin,
