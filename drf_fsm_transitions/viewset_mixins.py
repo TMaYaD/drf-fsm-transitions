@@ -5,6 +5,7 @@
 from django_fsm import can_proceed, FSMField
 from django.contrib.auth.models import User
 from rest_framework import exceptions
+from rest_framework import serializers
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
@@ -40,7 +41,7 @@ def get_all_transitions(model):
     fsm_fields = [f for f in model._meta.fields if isinstance(f, FSMField)]
     return {k:v for f in fsm_fields for k, v in f.transitions[model].items()}
 
-def get_viewset_transition_action_mixin(model, **kwargs):
+def get_viewset_transition_action_mixin(model_class, **kwargs):
     '''
     Find all transitions defined on `model`, then create a corresponding
     viewset action method for each and apply it to `Mixin`. Return the Mixin.
@@ -48,13 +49,31 @@ def get_viewset_transition_action_mixin(model, **kwargs):
     class Mixin(object):
         save_after_transition = True
 
-    transitions = get_all_transitions(model)
+        def get_serializer_class(self):
+            action = getattr(self, self.action)
+
+            kwargs = getattr(action, 'kwargs', None)
+            if not kwargs:
+                return super().get_serializer_class()
+
+            serializer_class = kwargs.get('serializer_class', None)
+            if not serializer_class:
+                return super().get_serializer_class()
+
+            return serializer_class
+
+    class FSMSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = model_class
+            fields = ('id',)
+
+    transitions = get_all_transitions(model_class)
     for transition_name in transitions:
-        url_name = model._meta.model_name + '-' + transition_name.replace('_', '-')
+        url_name = model_class._meta.model_name + '-' + transition_name.replace('_', '-')
         setattr(
             Mixin,
             transition_name,
-            get_transition_viewset_method(transition_name, url_name=url_name, **kwargs)
+            get_transition_viewset_method(transition_name, url_name=url_name, serializer_class=FSMSerializer, **kwargs)
         )
 
     return Mixin
