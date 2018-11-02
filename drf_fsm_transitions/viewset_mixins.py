@@ -30,7 +30,12 @@ def get_transition_viewset_method(transition_name, url_name=None, methods=['patc
                 object.save()
         else:
             raise exceptions.PermissionDenied(
-                'User {} cannot perform transition {}'.format(self.request.user, transition_name))
+                'User {user} cannot perform transition {transition} from {state}'.format(
+                   user=self.request.user,
+                   transition=transition_name,
+                   state=getattr(object, transition_method._django_fsm.field.attname)
+                )
+            )
 
         serializer = self.get_serializer(object)
         return Response(serializer.data)
