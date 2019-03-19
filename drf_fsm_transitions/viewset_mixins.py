@@ -71,6 +71,7 @@ def get_viewset_transition_action_mixin(model_class, **kwargs):
         class Meta:
             model = model_class
             fields = ('id',)
+            ref_name = model_class.__name__ + 'FSMSerializer'
 
     transitions = get_all_transitions(model_class)
     for transition_name in transitions:
